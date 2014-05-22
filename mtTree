@@ -1,0 +1,196 @@
+#!/usr/bin/env python
+
+#AUTHOR: Aaron Steele
+#DATE: 2/15/2014
+#PURPOSE: Build a multiple sequence alignment of
+
+import sys
+import os
+import subprocess
+import getopt
+import mtLib
+from cSequenceBuilder import cSequenceBuilder
+
+class mtTree:
+	def __init__(self,argv):
+		self.argv = argv
+		self.bwa = "bwa"
+		self.nucmer = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/nucmer"
+		self.samtools = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/samtools"
+		self.fq1 = ""
+		self.fq2 = ""
+		self.threads = 1
+		self.reference = ""
+		self.readLength = 100 
+		self.coverage = 300
+		self.fq1Mapped = ""
+		self.fq2Mapped = ""
+		self.cwd = ""
+
+	def usage(self):
+		#TODO More detail here
+		print "\nUsage: mtTree.py [OPTIONS]"
+		print "\t -h\t Prints this message"
+		print "[REQUIRED]"
+		print "\t -f\t First fastq file"
+		print "\t -g\t Second fastq file"
+		print "\t -r\t Reference assembly"
+		print "[OPTIONAL]"
+		print "\t -c\t Downsample to coverage for assembly (default=300)"
+		print "\t -l\t Average length of read (default = 100)"
+		print "\t -t\t # of threads to use (default=1)"
+		print "\t -b\t Location of bwa executable (default=bwa)"
+		print "\t -s\t Location of samtools executable (default=samtools)"
+		print "\t -n\t Location of nucmer executable (default=nucmer)"
+	
+	def processArguments(self):
+		try:
+			opts, args = getopt.getopt(self.argv, "h:r:f:g:c:l:t:b:s:n:",["help","reference","fq1","fq2","coverage","readlength","threads","bwa","samtools","nucmer"])
+		except getopt.GetoptError:
+			print "Unrecongized option"
+			self.usage()
+			sys.exit(2)
+	
+		for opt,arg in opts:
+			if opt in ("-h","--help"):
+				self.usage()
+				sys.exit(0)
+			elif opt in ("-f","--fq1"):
+				self.fq1 = os.path.realpath(arg)
+				#Set the cwd
+				path = os.path.realpath(self.fq1)
+				psplit = path.split("/")
+				self.cwd = "/".join(psplit[:-1]) + "/"
+			elif opt in ("-g","--fq2"):
+				self.fq2 = os.path.realpath(arg)
+			elif opt in ("-r","--reference"):
+				self.reference = os.path.realpath(arg)
+			elif opt in ("-c","--coverage"):
+				self.coverage = int(arg)	
+			elif opt in ("-t","--threads"):
+				self.threads = int(arg)
+			elif opt in ("-b","--bwa"):
+				self.bwa = os.path.realpath(arg)
+			elif opt in ("-s","--samtools"):
+				self.samtools = os.path.realpath(arg)
+			elif opt in ("-n","--nucmer"):
+				self.nucmer = os.path.realpath(arg)
+			elif opt in ("-l","--readLength"):
+				self.readLength = arg
+
+	def alignMEM(self, outputSam, reference):
+		command = self.bwa + " index " + reference
+		proc = subprocess.Popen(command, shell=True)
+		proc.wait()
+
+		command = self.bwa + " mem -k 2 -t " + str(self.threads) + " " + reference + " " + self.fq1 + " " + self.fq2 + " > " + outputSam
+		proc = subprocess.Popen(command,shell=True)
+		proc.wait()
+
+	
+	def alignPE(self,outputSam, reference):
+		#Index the reference
+		command = self.bwa + " index " + reference
+		proc = subprocess.Popen(command, shell=True)
+		proc.wait()
+
+		command = self.bwa + " aln -k 2 -l 32 -o 1 -t " + str(self.threads) + " " + reference + " " + self.fq1 + " > aln1.sai"
+		proc = subprocess.Popen(command, shell=True)
+		proc.wait()
+
+		command = self.bwa + " aln -k 2 -l 32 -o 1 -t " + str(self.threads) + " " + reference + " " + self.fq2 + " > aln2.sai"
+		proc = subprocess.Popen(command, shell=True)
+		proc.wait()
+
+		command = self.bwa + " sampe " + reference + " aln1.sai aln2.sai " + self.fq1 + " " + self.fq2 + " | " + self.samtools + " view -Sf2 - > " + outputSam
+		proc = subprocess.Popen(command, shell=True)
+		proc.wait()
+
+		command = "rm aln1.sai aln2.sai"
+		proc = subprocess.Popen(command,shell=True)
+		proc.wait()
+
+	def buildAssemblies(self,startCount,endCount,sam):
+
+		#Convert the sam file to fastq
+		command = "cat " + sam + " | grep -v ^@ | awk \'NR%2==1 {print \"@\"$1\"_1\\n\"$10\"\\n+\\n\"$11}\' > mit_1.fq "
+		proc = subprocess.Popen(command, shell=True)
+		proc.wait()
+
+		command = "cat " + sam  + " | grep -v ^@ | awk \'NR%2==0 {print \"@\"$1\"_2\\n\"$10\"\\n+\\n\"$11}\' > mit_2.fq"
+		proc = subprocess.Popen(command, shell=True)
+		proc.wait()
+		
+		#Determine sample size using coverage and read length
+		refLength = mtLib.getRefLength(self.reference)
+		sampleSize = int((refLength * self.coverage/2)/self.readLength)
+
+		for i in xrange(startCount,endCount+1):
+			#Random sample
+			mtLib.sample_pe_fq("mit_1.fq", "mit_2.fq", "mit_1.fq.tmp", "mit_2.fq.tmp", sampleSize)
+			
+			command = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/preprocr -p illumina -f mit_1.fq.tmp -x mit_2.fq.tmp -o mit.fq.tmp -d 33"
+			proc = subprocess.Popen(command, shell=True)
+			proc.wait()
+
+			command = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/overlappr -p illumina -f mit.fq.tmp -o mitK -g 15 -t " + str(self.threads)
+			proc = subprocess.Popen(command, shell=True)
+			proc.wait()
+
+			command = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/hapsemblr -r mitK -c contigs.fa -g 15"
+			proc = subprocess.Popen(command, shell=True)
+			proc.wait()
+
+			command = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/consensr -p illumina -f mit.fq.tmp -c contigs.fa -o mit_contigs." + str(i) + ".fa -d 33"
+			proc = subprocess.Popen(command, shell=True)
+			proc.wait()
+
+			command = "nucmer --mum -p mit_aln." + str(i) + " " + self.reference + " mit_contigs." + str(i) + ".fa"
+			proc = subprocess.Popen(command, shell=True)
+			proc.wait()
+
+			command = "rm mit_contigs." + str(i) + ".fa.tmp mit_1.fq.tmp mit_2.fq.tmp mit.fq.tmp"
+			proc = subprocess.Popen(command, shell=True)
+			proc.wait()
+	
+		
+		#Clean up
+		command = "rm mit_1.fq mit_2.fq"
+		proc = subprocess.Popen(command, shell=True)
+		proc.wait()
+
+	def run(self):
+		self.processArguments()
+
+		os.chdir(self.cwd)
+		#Shift the reference
+		shiftRef = mtLib.fasta_shift(self.reference)
+		
+		#Perform Regular ppieline
+		sys.stderr.write("Performing regular Pipeline\n")
+		self.alignMEM("mit_mapped_norm.sam", self.reference)
+		self.buildAssemblies(1,5,"mit_mapped_norm.sam")
+
+		#Perform Shifted pipeline
+		sys.stderr.write("Performing Shifted Pipelinen\n")
+		self.alignMEM("mit_mapped_shift.sam", shiftRef)
+		self.buildAssemblies(6,10,"mit_mapped_shift.sam")		
+
+		#Build consensus sequence
+		sys.stderr.write("Builing a consensus sequence\n")
+		c = cSequenceBuilder(self.cwd, self.reference)
+		c.buildSequence("mit_consensus.fa")
+
+		#Cleanup 
+		sys.stderr.write("Cleaning up temp files\n")
+		command = "rm mit_contigs.*.fa mit_aln.*.delta mitK.* " + shiftRef + "*"
+		proc = subprocess.Popen(command,shell=True)
+		proc.wait() 
+	
+
+if __name__ == "__main__":
+	mtt = mtTree(sys.argv[1:])
+	if len(sys.argv[1:]) < 2:
+		mtt.usage()
+		sys.exit(2)
+	mtt.run()
