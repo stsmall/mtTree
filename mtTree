@@ -15,8 +15,8 @@ class mtTree:
 	def __init__(self,argv):
 		self.argv = argv
 		self.bwa = "bwa"
-		self.nucmer = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/nucmer"
-		self.samtools = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/samtools"
+		self.nucmer = "nucmer"
+		self.samtools = "samtools"
 		self.fq1 = ""
 		self.fq2 = ""
 		self.threads = 1
@@ -26,26 +26,28 @@ class mtTree:
 		self.fq1Mapped = ""
 		self.fq2Mapped = ""
 		self.cwd = ""
+		self.hap = ""
 
 	def usage(self):
-		#TODO More detail here
-		print "\nUsage: mtTree.py [OPTIONS]"
-		print "\t -h\t Prints this message"
-		print "[REQUIRED]"
-		print "\t -f\t First fastq file"
-		print "\t -g\t Second fastq file"
-		print "\t -r\t Reference assembly"
-		print "[OPTIONAL]"
-		print "\t -c\t Downsample to coverage for assembly (default=300)"
-		print "\t -l\t Average length of read (default = 100)"
-		print "\t -t\t # of threads to use (default=1)"
-		print "\t -b\t Location of bwa executable (default=bwa)"
-		print "\t -s\t Location of samtools executable (default=samtools)"
-		print "\t -n\t Location of nucmer executable (default=nucmer)"
+		print("\nUsage: mtTree.py [OPTIONS]")
+		print("\t -h\t Prints this message")
+		print( "[REQUIRED]")
+		print("\t -f\t First fastq file")
+		print("\t -g\t Second fastq file")
+		print("\t -r\t Reference assembly")
+        print("\t -b\t Location of bwa executable (default=bwa)")
+        print("\t -s\t Location of samtools executable (default=samtools)")
+        print("\t -n\t Location of nucmer executable (default=nucmer)")
+		print("\t -a\t Hapsembler installation directory")
+		print("[OPTIONAL]")
+		print("\t -c\t Downsample to coverage for assembly (default=300)")
+		print("\t -l\t Average length of read (default = 100)")
+		print("\t -t\t # of threads to use (default=1)")
 	
+	#TODO: Need checks to make sure required inputs are set
 	def processArguments(self):
 		try:
-			opts, args = getopt.getopt(self.argv, "h:r:f:g:c:l:t:b:s:n:",["help","reference","fq1","fq2","coverage","readlength","threads","bwa","samtools","nucmer"])
+			opts, args = getopt.getopt(self.argv, "h:r:f:g:c:l:t:b:s:n:a:",["help","reference","fq1","fq2","coverage","readlength","threads","bwa","samtools","nucmer","hap"])
 		except getopt.GetoptError:
 			print "Unrecongized option"
 			self.usage()
@@ -77,6 +79,8 @@ class mtTree:
 				self.nucmer = os.path.realpath(arg)
 			elif opt in ("-l","--readLength"):
 				self.readLength = arg
+			elif opt in ("-a", "--hap"):
+				self.hap = os.path.realpath(arg)
 
 	def alignMEM(self, outputSam, reference):
 		command = self.bwa + " index " + reference
@@ -129,23 +133,23 @@ class mtTree:
 			#Random sample
 			mtLib.sample_pe_fq("mit_1.fq", "mit_2.fq", "mit_1.fq.tmp", "mit_2.fq.tmp", sampleSize)
 			
-			command = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/preprocr -p illumina -f mit_1.fq.tmp -x mit_2.fq.tmp -o mit.fq.tmp -d 33"
+			command = self.hap + "/bin/preprocr -p illumina -f mit_1.fq.tmp -x mit_2.fq.tmp -o mit.fq.tmp -d 33"
 			proc = subprocess.Popen(command, shell=True)
 			proc.wait()
 
-			command = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/overlappr -p illumina -f mit.fq.tmp -o mitK -g 15 -t " + str(self.threads)
+			command = self.hap + "/bin/overlappr -p illumina -f mit.fq.tmp -o mitK -g 15 -t " + str(self.threads)
 			proc = subprocess.Popen(command, shell=True)
 			proc.wait()
 
-			command = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/hapsemblr -r mitK -c contigs.fa -g 15"
+			command = self.hap + "/bin/hapsemblr -r mitK -c contigs.fa -g 15"
 			proc = subprocess.Popen(command, shell=True)
 			proc.wait()
 
-			command = "/afs/crc.nd.edu/group/NDBL/asteele2/software/bin/consensr -p illumina -f mit.fq.tmp -c contigs.fa -o mit_contigs." + str(i) + ".fa -d 33"
+			command = self.hap + "/bin/consensr -p illumina -f mit.fq.tmp -c contigs.fa -o mit_contigs." + str(i) + ".fa -d 33"
 			proc = subprocess.Popen(command, shell=True)
 			proc.wait()
 
-			command = "nucmer --mum -p mit_aln." + str(i) + " " + self.reference + " mit_contigs." + str(i) + ".fa"
+			command = self.nucmer + " --mum -p mit_aln." + str(i) + " " + self.reference + " mit_contigs." + str(i) + ".fa"
 			proc = subprocess.Popen(command, shell=True)
 			proc.wait()
 
