@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Created on Mon Apr 18 16:17:20 2016
@@ -102,7 +103,7 @@ class mtTree:
 #            command = self.bwa + " mem -t " + str(self.threads) + " " + reference + " " + self.fq1 + " " + self.fq2 + " > tmp.sam"
 #            proc = subprocess.Popen(command, shell=True)
 #            proc.wait()
-        command = self.bowtie2 + "/bowtie2-build -f" + reference
+        command = self.bowtie2 + "/bowtie2-build -f " + reference
         print command
         proc = subprocess.Popen(command, shell=True)
         proc.wait()  
