@@ -103,12 +103,12 @@ class mtTree:
 #            command = self.bwa + " mem -t " + str(self.threads) + " " + reference + " " + self.fq1 + " " + self.fq2 + " > tmp.sam"
 #            proc = subprocess.Popen(command, shell=True)
 #            proc.wait()
-        command = self.bowtie2 + "/bowtie2-build -f " + reference
+        command = self.bowtie2 + "-build -f " + reference
         print command
         proc = subprocess.Popen(command, shell=True)
         proc.wait()  
 
-        command = self.bowtie2 + "/bowtie2 -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fq1 + " -2 " + self.fq2 + " -S tmp.sam"
+        command = self.bowtie2 + "bowtie2 -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fq1 + " -2 " + self.fq2 + " -S tmp.sam"
         proc = subprocess.Popen(command, shell=True)
         proc.wait()     
     
@@ -136,19 +136,19 @@ class mtTree:
             #Random sample
             mtLib.sample_pe_fq("mit_1.fq", "mit_2.fq", "mit_1.fq.tmp", "mit_2.fq.tmp", sampleSize)
             
-            command = self.hap + "/bin/preprocr -p illumina -f mit_1.fq.tmp -x mit_2.fq.tmp -o mit.fq.tmp -d 33"
+            command = self.hap + "preprocr -p illumina -f mit_1.fq.tmp -x mit_2.fq.tmp -o mit.fq.tmp -d 33"
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = self.hap + "/bin/overlappr -p illumina -f mit.fq.tmp -o mitK -g 15 -t " + str(self.threads)
+            command = self.hap + "overlappr -p illumina -f mit.fq.tmp -o mitK -g 15 -t " + str(self.threads)
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = self.hap + "/bin/hapsemblr -r mitK -c contigs.fa -g 15"
+            command = self.hap + "hapsemblr -r mitK -c contigs.fa -g 15"
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = self.hap + "/bin/consensr -p illumina -f mit.fq.tmp -c contigs.fa -o mit_contigs." + str(i) + ".fa -d 33"
+            command = self.hap + "consensr -p illumina -f mit.fq.tmp -c contigs.fa -o mit_contigs." + str(i) + ".fa -d 33"
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
