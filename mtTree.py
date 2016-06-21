@@ -26,7 +26,7 @@ class mtTree:
         self.picardtools ="SamToFastq"
         self.fq1 = ""
         self.fq2 = ""
-        self.threads = 10
+        self.threads = 20
         self.reference = ""
         self.readLength = 250
         self.coverage = 300
@@ -103,6 +103,7 @@ class mtTree:
 #            proc = subprocess.Popen(command, shell=True)
 #            proc.wait()
         command = self.bowtie2 + "/bowtie2-build -f" + reference
+        print command
         proc = subprocess.Popen(command, shell=True)
         proc.wait()  
 
