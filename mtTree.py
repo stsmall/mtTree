@@ -20,7 +20,7 @@ class mtTree:
     def __init__(self,argv):
         self.argv = argv
         self.bwa = "bwa"
-        self.bowtie2 = "bowtie2"
+        self.bowtie2 = ""
         self.nucmer = "nucmer"
         self.samtools = "samtools"
         self.picardtools ="SamToFastq"
@@ -43,7 +43,7 @@ class mtTree:
          print("\t -g\t Second fastq file")
          print("\t -r\t Reference assembly")
          print("\t -b\t Location of bwa executable (default=bwa)")
-         print("\t -bt2\t Location of bowtie2 executable (default=None)")         
+         print("\t -bt2\t Location of bowtie2 executable (default=bowtie2)")         
          print("\t -s\t Location of samtools executable (default=samtools)")
          print("\t -n\t Location of nucmer executable (default=nucmer)")
          print("\t -a\t Hapsembler installation directory")
