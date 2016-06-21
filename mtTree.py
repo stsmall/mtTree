@@ -21,7 +21,7 @@ class mtTree:
     def __init__(self,argv):
         self.argv = argv
         self.bwa = "bwa"
-        self.bowtie2 = ""
+        self.bowtie2 = "bowtie2"
         self.nucmer = "nucmer"
         self.samtools = "samtools"
         self.picardtools ="SamToFastq"
