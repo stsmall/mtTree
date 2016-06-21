@@ -20,7 +20,7 @@ class mtTree:
     def __init__(self,argv):
         self.argv = argv
         self.bwa = "bwa"
-        self.bowtie2 = ""
+        self.bowtie2 = "bowtie2"
         self.nucmer = "nucmer"
         self.samtools = "samtools"
         self.picardtools ="SamToFastq"
@@ -94,16 +94,14 @@ class mtTree:
                 self.hap = os.path.realpath(arg)
             elif opt in ("-p", "--pic"):
                 self.picardtools = os.path.realpath(arg)
-    def alignMEM(self,outputSam,reference):
-        if not self.bowtie2:        
-            command = self.bwa + " index " + reference
-            proc = subprocess.Popen(command, shell=True)
-            proc.wait()
-            
-            command = self.bwa + " mem -t " + str(self.threads) + " " + reference + " " + self.fq1 + " " + self.fq2 + " > tmp.sam"
-            proc = subprocess.Popen(command, shell=True)
-            proc.wait()
-        else:
+    def alignMEM(self,outputSam,reference):      
+#            command = self.bwa + " index " + reference
+#            proc = subprocess.Popen(command, shell=True)
+#            proc.wait()
+#            
+#            command = self.bwa + " mem -t " + str(self.threads) + " " + reference + " " + self.fq1 + " " + self.fq2 + " > tmp.sam"
+#            proc = subprocess.Popen(command, shell=True)
+#            proc.wait()
             command = self.bowtie2 + "-build -f" + reference
             proc = subprocess.Popen(command, shell=True)
             proc.wait()  
@@ -124,7 +122,7 @@ class mtTree:
     def buildAssemblies(self,startCount,endCount,sam):
 
         #Convert the sam file to fastq
-        command = self.picardtools + " -I=" + sam + " -F=mit_1.fq -F2=mit_2.fq"
+        command = self.picardtools + " I=" + sam + " F=mit_1.fq F2=mit_2.fq"
         proc = subprocess.Popen(command, shell=True)
         proc.wait()
         
