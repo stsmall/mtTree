@@ -9,6 +9,7 @@ The code follows the methods suggested by Prado-Martinez on great apes
 """
 
 #dependencies: BWA, samtools, hapsembler, nucmer (from mummer3), Picard
+#so the os.path is not working correctly so everything is called from bin
 
 import sys
 import os
@@ -84,7 +85,7 @@ class mtTree:
             elif opt in ("-b","--bwa"):
                 self.bwa = os.path.realpath(arg)
             elif opt in ("-bt2","--bowtie2"):
-                self.bowtie2 = os.path.realpath(str(arg))
+                self.bowtie2 = os.path.realpath(arg)
             elif opt in ("-s","--samtools"):
                 self.samtools = os.path.realpath(arg)
             elif opt in ("-n","--nucmer"):
@@ -109,6 +110,7 @@ class mtTree:
         proc.wait()  
 
         command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fq1 + " -2 " + self.fq2 + " -S tmp.sam"
+        print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait()     
     
