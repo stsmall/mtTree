@@ -108,7 +108,7 @@ class mtTree:
         proc = subprocess.Popen(command, shell=True)
         proc.wait()  
 
-        command = self.bowtie2 + "bowtie2 -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fq1 + " -2 " + self.fq2 + " -S tmp.sam"
+        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fq1 + " -2 " + self.fq2 + " -S tmp.sam"
         proc = subprocess.Popen(command, shell=True)
         proc.wait()     
     
