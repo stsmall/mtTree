@@ -179,16 +179,16 @@ def sam_2_pe(samfile,pe1,pe2):
 	proc.wait()
 
 def getRefLength(reference):
-    infile = open(reference,"r")
-    lines = infile.readlines()
-    infile.close()
+	infile = open(reference,"r")
+	lines = infile.readlines()
+	infile.close()
 
-    size = 0    
-    for line in lines:
-        if not line.startswith(">"):
-            size += len(line.rstrip())
+	size = 0    
+	for line in lines:
+		if not line.startswith(">"):
+			size += len(line.rstrip())
     
-    return size
+	return size
 
 
 

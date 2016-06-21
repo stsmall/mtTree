@@ -22,7 +22,7 @@ class mtTree:
 		self.bwa = "bwa"
 		self.nucmer = "nucmer"
 		self.samtools = "samtools"
-           self.picardtools ="SamToFastq"
+		self.picardtools ="SamToFastq"
 		self.fq1 = ""
 		self.fq2 = ""
 		self.threads = 20
@@ -45,7 +45,7 @@ class mtTree:
          print("\t -s\t Location of samtools executable (default=samtools)")
          print("\t -n\t Location of nucmer executable (default=nucmer)")
          print("\t -a\t Hapsembler installation directory")
-         print("\t -p\t SamToFastq path)
+         print("\t -p\t Location of SamToFastq executable (defualt=SamToFastq")
          print("[OPTIONAL]")
          print("\t -c\t Downsample to coverage for assembly (default=300)")
          print("\t -l\t Average length of read (default = 250)")
@@ -99,17 +99,20 @@ class mtTree:
 		proc = subprocess.Popen(command, shell=True)
 		proc.wait()
     
-           #mappped reads only
+	        #mappped reads only
 		command = self.samtools + " view -q 15 -F 4 tmp.sam > " + outputSam
 		proc = subprocess.Popen(command, shell=True)
 		proc.wait()
-           rm tmp.sam
+
+                command = "rm tmp.sam"
+                proc = subprocess.Popen(command, shell=True)
+                proc.wait()
 
 	def buildAssemblies(self,startCount,endCount,sam):
 
 		#Convert the sam file to fastq
 		command = self.pic + " -I=" + sam + " -F=mit_1.fq -F2=mit_2.fq"
-           proc = subprocess.Popen(command, shell=True)
+	        proc = subprocess.Popen(command, shell=True)
 		proc.wait()
 		
 		#Determine sample size using coverage and read length
