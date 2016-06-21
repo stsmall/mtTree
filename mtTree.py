@@ -1,15 +1,20 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 18 16:17:20 2016
+mtTree.py
+this is a fork of the project by Aaron Steele to assemble mitochondrial genomes from WGS data.
+The code follows the methods suggested by Prado-Martinez on great apes
+@author: stsmall
+"""
 
-#AUTHOR: Aaron Steele
-#DATE: 2/15/2014
-#PURPOSE: Build a multiple sequence alignment of
+#dependencies: BWA, samtools, hapsembler, nucmer (from mummer3), Picard
 
 import sys
 import os
 import subprocess
 import getopt
-import mtLib
-from cSequenceBuilder import cSequenceBuilder
+import mtLib  #seperate module
+from cSequenceBuilder import cSequenceBuilder  #seperate module
 
 class mtTree:
 	def __init__(self,argv):
@@ -17,37 +22,39 @@ class mtTree:
 		self.bwa = "bwa"
 		self.nucmer = "nucmer"
 		self.samtools = "samtools"
+           self.picardtools ="SamToFastq"
 		self.fq1 = ""
 		self.fq2 = ""
-		self.threads = 1
+		self.threads = 20
 		self.reference = ""
-		self.readLength = 100 
+		self.readLength = 250 
 		self.coverage = 300
 		self.fq1Mapped = ""
 		self.fq2Mapped = ""
-		self.cwd = ""
-		self.hap = ""
+		self.cwd = ""  #current working directory
+		self.hap = "" #path to hapsembler working directory
 
 	def usage(self):
-		print("\nUsage: mtTree.py [OPTIONS]")
-		print("\t -h\t Prints this message")
-		print( "[REQUIRED]")
-		print("\t -f\t First fastq file")
-		print("\t -g\t Second fastq file")
-		print("\t -r\t Reference assembly")
-        print("\t -b\t Location of bwa executable (default=bwa)")
-        print("\t -s\t Location of samtools executable (default=samtools)")
-        print("\t -n\t Location of nucmer executable (default=nucmer)")
-		print("\t -a\t Hapsembler installation directory")
-		print("[OPTIONAL]")
-		print("\t -c\t Downsample to coverage for assembly (default=300)")
-		print("\t -l\t Average length of read (default = 100)")
-		print("\t -t\t # of threads to use (default=1)")
+         print("\nUsage: mtTree.py [OPTIONS]")
+         print("\t -h\t Prints this message")
+         print( "[REQUIRED]")
+         print("\t -f\t First fastq file")
+         print("\t -g\t Second fastq file")
+         print("\t -r\t Reference assembly")
+         print("\t -b\t Location of bwa executable (default=bwa)")
+         print("\t -s\t Location of samtools executable (default=samtools)")
+         print("\t -n\t Location of nucmer executable (default=nucmer)")
+         print("\t -a\t Hapsembler installation directory")
+         print("\t -p\t SamToFastq path)
+         print("[OPTIONAL]")
+         print("\t -c\t Downsample to coverage for assembly (default=300)")
+         print("\t -l\t Average length of read (default = 250)")
+         print("\t -t\t # of threads to use (default=20)")
 	
 	#TODO: Need checks to make sure required inputs are set
 	def processArguments(self):
 		try:
-			opts, args = getopt.getopt(self.argv, "h:r:f:g:c:l:t:b:s:n:a:",["help","reference","fq1","fq2","coverage","readlength","threads","bwa","samtools","nucmer","hap"])
+			opts, args = getopt.getopt(self.argv, "h:r:f:g:c:l:t:b:s:n:a:p:",["help","reference","fq1","fq2","coverage","readlength","threads","bwa","samtools","nucmer","hap","pic"])
 		except getopt.GetoptError:
 			print "Unrecongized option"
 			self.usage()
@@ -81,48 +88,28 @@ class mtTree:
 				self.readLength = arg
 			elif opt in ("-a", "--hap"):
 				self.hap = os.path.realpath(arg)
-
-	def alignMEM(self, outputSam, reference):
+			elif opt in ("-p", "--pic"):
+				self.pic = os.path.realpath(arg)
+	def alignMEM(self,outputSam,reference):
 		command = self.bwa + " index " + reference
 		proc = subprocess.Popen(command, shell=True)
 		proc.wait()
 
-		command = self.bwa + " mem -k 2 -t " + str(self.threads) + " " + reference + " " + self.fq1 + " " + self.fq2 + " > " + outputSam
-		proc = subprocess.Popen(command,shell=True)
-		proc.wait()
-
-	
-	def alignPE(self,outputSam, reference):
-		#Index the reference
-		command = self.bwa + " index " + reference
+		command = self.bwa + " mem -t " + str(self.threads) + " " + reference + " " + self.fq1 + " " + self.fq2 + " > tmp.sam"
 		proc = subprocess.Popen(command, shell=True)
 		proc.wait()
-
-		command = self.bwa + " aln -k 2 -l 32 -o 1 -t " + str(self.threads) + " " + reference + " " + self.fq1 + " > aln1.sai"
+    
+           #mappped reads only
+		command = self.samtools + " view -q 15 -F 4 tmp.sam > " + outputSam
 		proc = subprocess.Popen(command, shell=True)
 		proc.wait()
-
-		command = self.bwa + " aln -k 2 -l 32 -o 1 -t " + str(self.threads) + " " + reference + " " + self.fq2 + " > aln2.sai"
-		proc = subprocess.Popen(command, shell=True)
-		proc.wait()
-
-		command = self.bwa + " sampe " + reference + " aln1.sai aln2.sai " + self.fq1 + " " + self.fq2 + " | " + self.samtools + " view -Sf2 - > " + outputSam
-		proc = subprocess.Popen(command, shell=True)
-		proc.wait()
-
-		command = "rm aln1.sai aln2.sai"
-		proc = subprocess.Popen(command,shell=True)
-		proc.wait()
+           rm tmp.sam
 
 	def buildAssemblies(self,startCount,endCount,sam):
 
 		#Convert the sam file to fastq
-		command = "cat " + sam + " | grep -v ^@ | awk \'NR%2==1 {print \"@\"$1\"_1\\n\"$10\"\\n+\\n\"$11}\' > mit_1.fq "
-		proc = subprocess.Popen(command, shell=True)
-		proc.wait()
-
-		command = "cat " + sam  + " | grep -v ^@ | awk \'NR%2==0 {print \"@\"$1\"_2\\n\"$10\"\\n+\\n\"$11}\' > mit_2.fq"
-		proc = subprocess.Popen(command, shell=True)
+		command = self.pic + " -I=" + sam + " -F=mit_1.fq -F2=mit_2.fq"
+           proc = subprocess.Popen(command, shell=True)
 		proc.wait()
 		
 		#Determine sample size using coverage and read length
