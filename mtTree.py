@@ -103,7 +103,7 @@ class mtTree:
 #            command = self.bwa + " mem -t " + str(self.threads) + " " + reference + " " + self.fq1 + " " + self.fq2 + " > tmp.sam"
 #            proc = subprocess.Popen(command, shell=True)
 #            proc.wait()
-        command = self.bowtie2 + "-build -f " + reference + reference
+        command = self.bowtie2 + "-build -f " + reference + " " + reference
         print command
         proc = subprocess.Popen(command, shell=True)
         proc.wait()  
