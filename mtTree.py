@@ -56,7 +56,7 @@ class mtTree:
     #TODO: Need checks to make sure required inputs are set
     def processArguments(self):
         try:
-            opts, args = getopt.getopt(self.argv, "h:r:f:g:c:l:t:b:s:n:a:p:",["help","reference","fq1","fq2","coverage","readlength","threads","bwa","samtools","nucmer","hap","pic"])
+            opts, args = getopt.getopt(self.argv, "h:r:f:g:c:l:t:b:bt2:s:n:a:p:",["help","reference","fq1","fq2","coverage","readlength","threads","bwa","bowtie2","samtools","nucmer","hap","picardtools"])
         except getopt.GetoptError:
             print "Unrecongized option"
             self.usage()
@@ -92,7 +92,7 @@ class mtTree:
                 self.readLength = arg
             elif opt in ("-a", "--hap"):
                 self.hap = os.path.realpath(arg)
-            elif opt in ("-p", "--pic"):
+            elif opt in ("-p", "--picardtools"):
                 self.picardtools = os.path.realpath(arg)
     def alignMEM(self,outputSam,reference):      
 #            command = self.bwa + " index " + reference
