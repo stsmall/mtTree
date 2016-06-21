@@ -84,7 +84,7 @@ class mtTree:
             elif opt in ("-b","--bwa"):
                 self.bwa = os.path.realpath(arg)
             elif opt in ("-bt2","--bowtie2"):
-                self.bowtie2 = os.path.realpath(arg)
+                self.bowtie2 = os.path.realpath(str(arg))
             elif opt in ("-s","--samtools"):
                 self.samtools = os.path.realpath(arg)
             elif opt in ("-n","--nucmer"):
