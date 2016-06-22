@@ -20,16 +20,12 @@ def fasta_shift(fastaIn):
 	length = len(seq)
 	mid = length/2
 
-	for i in range(mid,mid+length):
-		outfile.write(seq[i%length])
-
+	outfile.write(seq+seq[0:mid])
+  
 	infile.close()
 	outfile.close()
 
 	return fastaOut
-
-	
-	
 
 #Random samples X reads from a given fastq file
 def fq_se_sample(fqIn, fqOut, sampleSize):
@@ -74,7 +70,7 @@ def fq_se_sample(fqIn, fqOut, sampleSize):
 			infile.readline()
 			infile.readline()
 		line = infile.readline()
-		readNum += 1
+		readnum += 1
 	infile.close()
 	outfile.close()
 
@@ -182,12 +178,10 @@ def getRefLength(reference):
 	infile = open(reference,"r")
 	lines = infile.readlines()
 	infile.close()
-
 	size = 0    
 	for line in lines:
 		if not line.startswith(">"):
-			size += len(line.rstrip())
-    
+			size += len(line.rstrip()) 
 	return size
 
 
