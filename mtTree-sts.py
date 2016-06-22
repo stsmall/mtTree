@@ -111,8 +111,8 @@ class mtTree:
         shiftRef = mtLib.fasta_shift(self.reference)        
         #run align        
         sys.stderr.write("Performing regular Pipeline\n")        
-        self.align("mit_mapped.sam",shiftRef)
-        self.assemble(1,5,"mit_mapped.sam")
+        self.align("mit_mapped.bam",shiftRef)
+        self.assemble(1,5,"mit_mapped.bam")
         #build consensus        
         sys.stderr.write("Builing a consensus sequence\n")
         c = cSequenceBuilder(self.cwd, self.reference)
