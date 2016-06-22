@@ -51,7 +51,6 @@ class mtTree:
         self.cwd = os.path.split(self.fastq1)[0]
         self.samtools = os.path.realpath(args.samtools)
         self.bedtools = os.path.realpath(args.bedtools) #executables in bin; path should end in bin
-
     def align(self,outputSam,reference):
         '''align reads from fastq files using bowtie2'''
         
@@ -62,6 +61,7 @@ class mtTree:
         
         #run bowtie2 alignment
         command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " | " + self.samtools + " view -bS - | " + self.samtools + " sort -n - " + outputSam
+        print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
       
@@ -69,7 +69,7 @@ class mtTree:
         '''assemble reads using hapsemblr'''
         
         #sam to paired-end        
-        command = os.path.join(self.bamToFastq,"bamToFastq") + " -i " + sam + " -fq mt_1.fq -fq2 mt_2.fq"
+        command = os.path.join(self.bedtools,"bamToFastq") + " -i " + sam + " -fq mt_1.fq -fq2 mt_2.fq"
         
         #Determine sample size using coverage and read length
         refLength = mtLib.getRefLength(self.reference)
