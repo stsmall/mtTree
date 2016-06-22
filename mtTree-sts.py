@@ -44,7 +44,7 @@ class mtTree:
         self.nucmer = os.path.join(args.nucmer,"nucmer")
         self.hapsemblr = os.path.realpath(args.hapsemblr)
         self.coverage = args.coverage
-        self.read_length = args.length
+        self.read_length = args.read_length
         self.threads = args.threads
         self.cwd = os.path.split(self.fastq1)[0]
 
