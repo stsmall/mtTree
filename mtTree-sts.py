@@ -49,10 +49,7 @@ class mtTree:
         self.read_length = args.read_length
         self.threads = args.threads
         self.cwd = os.path.split(self.fastq1)[0]
-        if self.samtools is None:
-            self.samtools = "samtools"
-        else:
-            self.samtools = os.path.realpath(args.samtools)
+        self.samtools = os.path.realpath(args.samtools)
         self.bedtools = os.path.realpath(args.bedtools) #executables in bin; path should end in bin
 
     def align(self,outputSam,reference):
