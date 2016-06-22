@@ -33,6 +33,7 @@ def get_args():
     parser.add_argument('-t','--threads',help='number of threads for bowtie2',type=int,default=1)   
     parser.add_argument('-s','--samtools',help='path to samtools')
     parser.add_argument('-bdt','--bedtools',help='path to bedtools')
+    parser.add_argument('-smb','--sambamba',help='path to sambamba')    
     parser.add_argument('--debug',action='store_true',help='increase output for code debugging')
     args = parser.parse_args()
     return args
@@ -51,6 +52,7 @@ class mtTree:
         self.cwd = os.path.split(self.fastq1)[0]
         self.samtools = os.path.realpath(args.samtools)
         self.bedtools = os.path.realpath(args.bedtools) #executables in bin; path should end in bin
+        self.sambamba = os.path.realpath(args.sambamba)
     def align(self,outputSam,reference):
         '''align reads from fastq files using bowtie2'''
         
@@ -60,10 +62,15 @@ class mtTree:
         proc.wait()
         
         #run bowtie2 alignment
-        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " | " + self.samtools + " view -bS - | " + self.samtools + " sort -n - " + outputSam
+        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " | " + self.samtools + " view -bS > out.bam" 
         print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
+        
+        #sort bam        
+        command = self.sambamba + " sort -n -t " + self.threads + " out.bam -o " + outputSam
+        proc = subprocess.Popen(command, shell=True)
+        proc.wait()       
       
     def assemble(self,startCount,endCount,sam):    
         '''assemble reads using hapsemblr'''
