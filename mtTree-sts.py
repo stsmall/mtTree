@@ -31,6 +31,8 @@ def get_args():
     parser.add_argument('-c','--coverage',help='coverage for downsampling',type=int,default=300) 
     parser.add_argument('-l','--read_length',help='estiamted read length',type=int,default=250) 
     parser.add_argument('-t','--threads',help='number of threads for bowtie2',type=int,default=1)   
+    parser.add_argument('-s','--samtools',help='path to samtools',default="samtools")
+    parser.add_argument('-bdt','--bedtools',help='path to bedtools')
     parser.add_argument('--debug',action='store_true',help='increase output for code debugging')
     args = parser.parse_args()
     return args
@@ -42,11 +44,13 @@ class mtTree:
         self.fastq2 = os.path.realpath(args.fastq2)
         self.reference = os.path.realpath(args.reference)
         self.nucmer = os.path.join(args.nucmer,"nucmer")
-        self.hapsemblr = os.path.realpath(args.hapsemblr)
+        self.hapsemblr = os.path.realpath(args.hapsemblr) #executables in bin; path should end in bin
         self.coverage = args.coverage
         self.read_length = args.read_length
         self.threads = args.threads
         self.cwd = os.path.split(self.fastq1)[0]
+        self.samtools = os.path.realpath(args.samtools)
+        self.bedtools = os.path.realpath(args.bedtools) #executables in bin; path should end in bin
 
     def align(self,outputSam,reference):
         '''align reads from fastq files using bowtie2'''
@@ -57,7 +61,7 @@ class mtTree:
         proc.wait()
         
         #run bowtie2 alignment
-        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > " + outputSam
+        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " | " + self.samtools + " view -bS - | " + self.samtools + " sort -n - " + outputSam
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
       
@@ -65,7 +69,7 @@ class mtTree:
         '''assemble reads using hapsemblr'''
         
         #sam to paired-end        
-        mtLib.sam_2_pe(sam, "mt_1.fq","mt_2.fq")
+        command = os.path.join(self.bamToFastq,"bamToFastq") + " -i " + sam + " -fq mt_1.fq -fq2 mt_2.fq"
         
         #Determine sample size using coverage and read length
         refLength = mtLib.getRefLength(self.reference)
