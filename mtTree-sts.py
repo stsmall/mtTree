@@ -19,7 +19,7 @@ from cSequenceBuilder import cSequenceBuilder  #seperate module
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description='Assmbles mitochondrial genomes from paired read info by mapping then assembly and consensus')  
+    parser = argparse.ArgumentParser(description='Assembles mitochondrial genomes from paired read info by mapping then assembly and consensus')  
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-bt2','--bowtie2', help='path to bowtie2 directory containing executable for bowtie2 and bowtie2-build')
     group.add_argument('-bwa','--bwa', help='path to bwa directory containing executable')    
@@ -27,7 +27,7 @@ def get_args():
     parser.add_argument('-f2','--fastq2', required=True, help='fastq containing read pair 2')
     parser.add_argument('-r','--reference', required=True, help='fasta containing reference')    
     parser.add_argument('-n','--nucmer',help='path to nucmer')
-    parser.add_argument('-h','--hapsemblr',help='path to hapsemblr') 
+    parser.add_argument('-a','--hapsemblr',help='path to hapsemblr') 
     parser.add_argument('-c','--coverage',help='coverage for downsampling',type=int,default=300) 
     parser.add_argument('-l','--read_length',help='estiamted read length',type=int,default=250) 
     parser.add_argument('-t','--threads',help='number of threads for bowtie2',type=int,default=1)   
