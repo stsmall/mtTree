@@ -31,7 +31,7 @@ def get_args():
     parser.add_argument('-c','--coverage',help='coverage for downsampling',type=int,default=300) 
     parser.add_argument('-l','--read_length',help='estiamted read length',type=int,default=250) 
     parser.add_argument('-t','--threads',help='number of threads for bowtie2',type=int,default=1)   
-    parser.add_argument('-s','--samtools',help='path to samtools',default="samtools")
+    parser.add_argument('-s','--samtools',help='path to samtools')
     parser.add_argument('-bdt','--bedtools',help='path to bedtools')
     parser.add_argument('--debug',action='store_true',help='increase output for code debugging')
     args = parser.parse_args()
@@ -49,7 +49,10 @@ class mtTree:
         self.read_length = args.read_length
         self.threads = args.threads
         self.cwd = os.path.split(self.fastq1)[0]
-        self.samtools = os.path.realpath(args.samtools)
+        if self.samtools is None:
+            self.samtools = "samtools"
+        else:
+            self.samtools = os.path.realpath(args.samtools)
         self.bedtools = os.path.realpath(args.bedtools) #executables in bin; path should end in bin
 
     def align(self,outputSam,reference):
