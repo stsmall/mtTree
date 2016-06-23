@@ -72,6 +72,7 @@ class mtTree:
         
         #sort bam        
         command = self.sambamba + " sort -n -t " + str(self.threads) + " out.sam -o " + outputSam
+        print command         
         proc = subprocess.Popen(command, shell=True)
         proc.wait()       
       
@@ -86,13 +87,13 @@ class mtTree:
         #Determine sample size using coverage and read length
         refLength = mtLibsts.getRefLength(self.reference)
         sampleSize = int((refLength * self.coverage/2)/self.read_length)      
-        
+        print sampleSize
         #run hapsemblr
         for i in xrange(startCount,endCount+1):
             #random sample
-            mtLibsts.sample_pe_fq("mit_1.fq", "mit_2.fq", "mit_1.fq.tmp", "mit_2.fq.tmp", sampleSize)
+            mtLibsts.write_random_records("mit_1.fq", "mit_2.fq", sampleSize)
             
-            command = os.path.join(self.hapsemblr,"preprocr") + " -p illumina -f mit_1.fq.tmp -x mit_2.fq.tmp -o mit.fq.tmp -d 33"
+            command = os.path.join(self.hapsemblr,"preprocr") + " -p illumina -f mit_1.fq.subset -x mit_2.fq.subset -o mit.fq.tmp -d 33"
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
@@ -112,9 +113,9 @@ class mtTree:
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = "rm mit_contigs." + str(i) + ".fa.tmp mit_1.fq.tmp mit_2.fq.tmp mit.fq.tmp"
-            proc = subprocess.Popen(command, shell=True)
-            proc.wait()
+            #command = "rm mit_contigs." + str(i) + ".fa.tmp mit_1.fq.subset mit_2.fq.subset mit.fq.tmp"
+            #proc = subprocess.Popen(command, shell=True)
+            #proc.wait()
             
     def run(self):
         '''run everything at once'''
