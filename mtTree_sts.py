@@ -85,7 +85,7 @@ class mtTree:
         
         #Determine sample size using coverage and read length
         refLength = mtLibsts.getRefLength(self.reference)
-        sampleSize = int((refLength * self.coverage/2)/self.readLength)        
+        sampleSize = int((refLength * self.coverage/2)/self.read_length)      
         
         #run hapsemblr
         for i in xrange(startCount,endCount+1):
