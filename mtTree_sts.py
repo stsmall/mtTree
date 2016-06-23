@@ -14,7 +14,7 @@ import logging
 import os
 import subprocess
 import sys
-import mtLib  #seperate module
+import mtLibsts  #seperate module
 from cSequenceBuilder import cSequenceBuilder  #seperate module
 
 
@@ -68,7 +68,7 @@ class mtTree:
         proc.wait() 
         
         #sort bam        
-        command = self.sambamba + " sort -n -t " + self.threads + " out.bam -o " + outputSam
+        command = self.sambamba + " sort -n -t " + str(self.threads) + " out.bam -o " + outputSam
         proc = subprocess.Popen(command, shell=True)
         proc.wait()       
       
@@ -79,13 +79,13 @@ class mtTree:
         command = os.path.join(self.bedtools,"bamToFastq") + " -i " + sam + " -fq mt_1.fq -fq2 mt_2.fq"
         
         #Determine sample size using coverage and read length
-        refLength = mtLib.getRefLength(self.reference)
+        refLength = mtLibsts.getRefLength(self.reference)
         sampleSize = int((refLength * self.coverage/2)/self.readLength)        
         
         #run hapsemblr
         for i in xrange(startCount,endCount+1):
             #random sample
-            mtLib.sample_pe_fq("mit_1.fq", "mit_2.fq", "mit_1.fq.tmp", "mit_2.fq.tmp", sampleSize)
+            mtLibsts.sample_pe_fq("mit_1.fq", "mit_2.fq", "mit_1.fq.tmp", "mit_2.fq.tmp", sampleSize)
             
             command = os.path.join(self.hapsemblr,"preprocr") + " -p illumina -f mit_1.fq.tmp -x mit_2.fq.tmp -o mit.fq.tmp -d 33"
             proc = subprocess.Popen(command, shell=True)
@@ -115,7 +115,7 @@ class mtTree:
         '''run everything at once'''
         os.chdir(self.cwd)
         #shift reference        
-        shiftRef = mtLib.fasta_shift(self.reference)        
+        shiftRef = mtLibsts.fasta_shift(self.reference)        
         #run align        
         sys.stderr.write("Performing regular Pipeline\n")        
         self.align("mit_mapped.bam",shiftRef)
