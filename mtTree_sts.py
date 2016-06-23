@@ -105,7 +105,7 @@ class mtTree:
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = os.path.join(self.hapsemblr,"consenr") + " -p illumina -f mit.fq.tmp -c contigs.fa -o mit_contigs." + str(i) + ".fa -d 33"
+            command = os.path.join(self.hapsemblr,"consensr") + " -p illumina -f mit.fq.tmp -c contigs.fa -o mit_contigs." + str(i) + ".fa -d 33"
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
