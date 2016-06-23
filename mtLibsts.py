@@ -83,4 +83,4 @@ def write_random_records(fqa, fqb, N):
             subb.write(fhb.readline())
         rec_no += 1 # (thanks @anderwo)
 
-    print ("wrote to %s, %s" % suba.name, subb.name)
+    print ("wrote to %s, %s" %(suba.name, subb.name))
