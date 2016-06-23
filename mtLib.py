@@ -164,10 +164,12 @@ def sample_pe_fq(fq1In, fq2In, fq1Out, fq2Out, sampleSize):
 
 def sam_2_pe(samfile,pe1,pe2):
 	
+    #assumes a name sorted sam file 
+ 
 	#Extract forward reads
-	command = "cat " + samfile + " | grep -v ^@ | awk 'NR%2==1 {print \"@\"$1\"_1\\n\"$10\"\\n+\\n\"$11}' > " + pe1
-	proc = subprocess.Popen(command,shell=True)
-	proc.wait()
+      command = "cat " + samfile + " | grep -v ^@ | awk 'NR%2==1 {print "@"$1"\n"$10"\n+\n"$11}' > " + pe1 
+      proc = subprocess.Popen(command,shell=True)
+	proc.wait()	
 
 	#Extract reverse reads
 	command = "cat " + samfile + " | grep -v ^@ | awk 'NR%2==0 {print \"@\"$1\"_2\\n\"$10\"\\n+\\n\"$11}' > " + pe2

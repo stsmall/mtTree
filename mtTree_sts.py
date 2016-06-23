@@ -62,21 +62,26 @@ class mtTree:
         proc.wait()
         
         #run bowtie2 alignment
-        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " | " + self.samtools + " view -bS > out.bam" 
+        #as bam        
+        #command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " | " + self.samtools + " view -bS > out.bam" 
+        #as sam        
+        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
         print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
         
         #sort bam        
-        command = self.sambamba + " sort -n -t " + str(self.threads) + " out.bam -o " + outputSam
+        command = self.sambamba + " sort -n -t " + str(self.threads) + " out.sam -o " + outputSam
         proc = subprocess.Popen(command, shell=True)
         proc.wait()       
       
     def assemble(self,startCount,endCount,sam):    
         '''assemble reads using hapsemblr'''
         
-        #sam to paired-end        
-        command = os.path.join(self.bedtools,"bamToFastq") + " -i " + sam + " -fq mt_1.fq -fq2 mt_2.fq"
+        #bam to paired-end        
+        #command = os.path.join(self.bedtools,"bamToFastq") + " -i " + sam + " -fq mt_1.fq -fq2 mt_2.fq"
+        mtLibsts.sam_2_pe(sam,"mit_1.fq","mit_2.fq")
+        
         
         #Determine sample size using coverage and read length
         refLength = mtLibsts.getRefLength(self.reference)

@@ -59,6 +59,7 @@ def sam_2_pe(samfile,pe1,pe2):
     else:
         print "file not sorted by query name"
         sys.exit(1)
+        
 def sample_pe_fq(fq1In, fq2In, fq1Out, fq2Out, sampleSize):
     import random
 
