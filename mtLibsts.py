@@ -44,8 +44,8 @@ def sam_2_pe(samfile,pe1,pe2):
           
     #assumes a name sorted sam file; e.g., samtools sort -n or sambamba sort -n -t20
     r1 = subprocess.Popen(['head', '-n 2', samfile],stdout=subprocess.PIPE)
-    out = r1.communicate()
-    print out
+    (out,err) = r1.communicate()
+    #print out
     if out.split("\n")[0].split("\t")[0] in out.split("\n")[1].split("\t")[0]:  
         
         #Extract forward reads
