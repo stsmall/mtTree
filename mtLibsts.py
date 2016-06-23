@@ -50,6 +50,7 @@ def sam_2_pe(samfile,pe1,pe2):
         
         #Extract forward reads
         command = "cat " + samfile + ''' | grep -v ^@ | awk 'NR%2==1 {print "@"$1"\n"$10"\n+\n"$11}' > ''' + pe1 
+        print command        
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
         
