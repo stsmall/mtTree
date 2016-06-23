@@ -49,12 +49,12 @@ def sam_2_pe(samfile,pe1,pe2):
     if out.split("\n")[0].split("\t")[0] in out.split("\n")[1].split("\t")[0]:  
         
         #Extract forward reads
-        command = "cat " + samfile + " | grep -v ^@ | awk 'NR%2==1 {print '@'$1'\n'$10'\n+\n'$11}' > " + pe1 
+        command = "cat " + samfile + ''' | grep -v ^@ | awk 'NR%2==1 {print "@"$1"\n"$10"\n+\n"$11}' > ''' + pe1 
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
         
         #extract reverse reads
-        command = "cat " + samfile + " | grep -v ^@ | awk 'NR%2==0 {print '@'$1'\n'$10'\n+\n'$11}' > " + pe2
+        command = "cat " + samfile + ''' | grep -v ^@ | awk 'NR%2==0 {print "@"$1"\n"$10"\n+\n"$11}' > ''' + pe2
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
     else:
