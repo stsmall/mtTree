@@ -5,7 +5,7 @@ usage: mtTree.py -h
 this is a fork of the project by Aaron Steele https://bitbucket.org/steelea/ to assemble mitochondrial genomes from WGS data.
 The code follows the methods suggested by Prado-Martinez Nature 2013: Great ape genetic diversity and population history.
 
-Dependencies: bowtie2, hapsembler, nucmer (from mummer3), cSequenceBuilder
+Dependencies: bowtie2 path, hapsembler path, nucmer (from mummer3) path, sambamba (just faster) or samtools path, abacas.pl in cwd
 
 @author: stsmall
 """
@@ -15,12 +15,11 @@ import os
 import subprocess
 import sys
 import mtLibsts  #seperate module
-from cSequenceBuilder import cSequenceBuilder  #seperate module
-
 
 def get_args():
     parser = argparse.ArgumentParser(description='Assembles mitochondrial genomes from paired read info by mapping then assembly and consensus')  
     group = parser.add_mutually_exclusive_group()
+    group2 = parser.add_mutually_exclusive_group()
     group.add_argument('-bt2','--bowtie2', help='path to bowtie2 directory containing executable for bowtie2 and bowtie2-build')
     group.add_argument('-bwa','--bwa', help='path to bwa directory containing executable')    
     parser.add_argument('-f1','--fastq1', required=True, help='fastq containing read pair 1')      
@@ -31,9 +30,8 @@ def get_args():
     parser.add_argument('-c','--coverage',help='coverage for downsampling',type=int,default=300) 
     parser.add_argument('-l','--read_length',help='estiamted read length',type=int,default=250) 
     parser.add_argument('-t','--threads',help='number of threads for bowtie2',type=int,default=1)   
-    parser.add_argument('-s','--samtools',help='path to samtools')
-    parser.add_argument('-bdt','--bedtools',help='path to bedtools')
-    parser.add_argument('-smb','--sambamba',help='path to sambamba')    
+    group2.add_argument('-s','--samtools',help='path to samtools')
+    group2.add_argument('-smb','--sambamba',help='path to sambamba')    
     parser.add_argument('--debug',action='store_true',help='increase output for code debugging')
     args = parser.parse_args()
     return args
@@ -51,38 +49,42 @@ class mtTree:
         self.threads = args.threads
         self.cwd = os.path.split(self.fastq1)[0]
         self.samtools = os.path.realpath(args.samtools)
-        self.bedtools = os.path.realpath(args.bedtools) #executables in bin; path should end in bin
         self.sambamba = os.path.realpath(args.sambamba)
     def align(self,outputSam,reference):
         '''align reads from fastq files using bowtie2'''
         
-        #make index        
-        command = self.bowtie2 + "-build -f " + self.reference + " " + self.reference
-        proc = subprocess.Popen(command, shell=True)
-        proc.wait()
+        if self.bwa is None:        
+            #make index        
+            command = self.bowtie2 + "-build -f " + self.reference + " " + self.reference
+            proc = subprocess.Popen(command, shell=True)
+            proc.wait()
+            
+            #run bowtie2 alignment
+            command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
+            print command        
+            proc = subprocess.Popen(command, shell=True)
+            proc.wait()
+        else:
+            sys.stderr.write("no support yet for bwa\n")
         
-        #run bowtie2 alignment
-        #as bam        
-        #command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " | " + self.samtools + " view -bS > out.bam" 
-        #as sam        
-        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + self.reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
-        print command        
-        proc = subprocess.Popen(command, shell=True)
-        proc.wait() 
-        
-        #sort bam        
-        command = self.sambamba + " sort -n -t " + str(self.threads) + " out.sam -o " + outputSam
-        print command         
-        proc = subprocess.Popen(command, shell=True)
-        proc.wait()       
+        if self.sambamba is None:
+        #sort with samtools
+            command = self.samtools + " sort -n -@ " + str(self.threads) + " out.sam -o " + outputSam
+            print command         
+            proc = subprocess.Popen(command, shell=True)
+            proc.wait()       
+        else:
+        #sort bam with sambamba     
+            command = self.sambamba + " sort -n -t " + str(self.threads) + " out.sam -o " + outputSam
+            print command         
+            proc = subprocess.Popen(command, shell=True)
+            proc.wait()       
       
     def assemble(self,startCount,endCount,sam):    
         '''assemble reads using hapsemblr'''
         
         #bam to paired-end        
-        #command = os.path.join(self.bedtools,"bamToFastq") + " -i " + sam + " -fq mt_1.fq -fq2 mt_2.fq"
-        mtLibsts.sam_2_pe(sam,"mit_1.fq","mit_2.fq")
-        
+        mtLibsts.sam_2_pe(sam,"mit_1.fq","mit_2.fq")        
         
         #Determine sample size using coverage and read length
         refLength = mtLibsts.getRefLength(self.reference)
@@ -109,32 +111,54 @@ class mtTree:
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = self.nucmer + " --mum -p mit_aln." + str(i) + " " + self.reference + " mit_contigs." + str(i) + ".fa"
+            command = "rm mit_contigs." + str(i) + ".fa.tmp mit_1.fq.subset mit_2.fq.subset mit.fq.tmp"
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
-
-            #command = "rm mit_contigs." + str(i) + ".fa.tmp mit_1.fq.subset mit_2.fq.subset mit.fq.tmp"
-            #proc = subprocess.Popen(command, shell=True)
-            #proc.wait()
-            
+        
+        #cat all mit_contigs.*.fa to mit_contigs.f.fa and change names so unique
+        filenames = ["mit_contigs.1.fa","mit_contigs.2.fa","mit_contigs.3.fa","mit_contigs.4.fa","mit_contigs.5.fa"]
+        with open("mit_contigs.f2.fa",'w') as outfile:
+            for fname in filenames:
+                with open(fname) as infile:
+                    outfile.write(infile.read())
+        #rename the headers so no dups
+        j = 0
+        with open("mit_contigs.f.fa",'w') as outfile:
+            with open('mit_contigs.f2.fa','r') as infile:
+                for line in infile:
+                    if line.startswith(">"):
+                        outfile.write(">mit_%i\n" %j)
+                        j += 1
+                    else:
+                        outfile.write(line)                
+                
+#    def consensus_builder(self,reference,hapsemblr_contigs):
+#        #run abacas needs to be in the current working directory cwd
+#        command = "perl abacas.1.3.1.pl -r " + reference + " -q " + hapsemblr_contigs + " -p nucmer -c"
+#        proc = subprocess.Popen(command, shell=True)
+#        proc.wait()
+    
     def run(self):
         '''run everything at once'''
         os.chdir(self.cwd)
+
         #shift reference        
         shiftRef = mtLibsts.fasta_shift(self.reference)        
+
         #run align        
         sys.stderr.write("Performing regular Pipeline\n")        
         self.align("mit_mapped.bam",shiftRef)
         self.assemble(1,5,"mit_mapped.bam")
-        #build consensus        
-        sys.stderr.write("Builing a consensus sequence\n")
-        c = cSequenceBuilder(self.cwd, self.reference)
-        c.buildSequence("mit_consensus.fa")
-        #Cleanup 
-        #sys.stderr.write("Cleaning up temp files\n")
-        #command = "rm mit_contigs.*.fa mit_aln.*.delta mitK.*"
-        #proc = subprocess.Popen(command,shell=True)
-        #proc.wait()
+
+        #build consensus using ABACAS
+ #       sys.stderr.write("Performing consensus Pipeline\n")
+ #       self.consensus_builder(self.reference,"mit_contigs.f.fa")
+ 
+       #Cleanup 
+        sys.stderr.write("Cleaning up temp files\n")
+        command = "rm mit_contigs.{1,2,3,4,5}.fa"
+        proc = subprocess.Popen(command,shell=True)
+        proc.wait()
   
 def main():
     args = get_args()
