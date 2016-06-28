@@ -127,6 +127,7 @@ class mtTree:
         '''run everything at once'''
         print self.cwd        
         os.chdir(self.cwd)
+        print self.reference
 
         #shift reference        
         shiftRef = mtLibsts.fasta_shift(self.reference)        

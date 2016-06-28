@@ -11,7 +11,7 @@ import os
 def fasta_shift(fastaIn):
     infile = open(fastaIn,"r")
     path_ref = os.path.split(fastaIn)  
-    fastaOut = os.path.join(path_ref, "shift_" + path_ref[1])
+    fastaOut = os.path.join(path_ref[0], "shift_" + path_ref[1])
     outfile = open(fastaOut,"w")
 
     seq = ""
