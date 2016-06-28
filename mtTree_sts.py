@@ -18,9 +18,7 @@ import mtLibsts  #seperate module
 
 def get_args():
     parser = argparse.ArgumentParser(description='Assembles mitochondrial genomes from paired read info by mapping then assembly and consensus')  
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('-bt2','--bowtie2', help='path to bowtie2 directory containing executable for bowtie2 and bowtie2-build')
-    group.add_argument('-bwa','--bwa', help='path to bwa directory containing executable')    
+    parser.add_argument('-bt2','--bowtie2', help='path to bowtie2 directory containing executable for bowtie2 and bowtie2-build')
     parser.add_argument('-f1','--fastq1', required=True, help='fastq containing read pair 1')      
     parser.add_argument('-f2','--fastq2', required=True, help='fastq containing read pair 2')
     parser.add_argument('-r','--reference', required=True, help='fasta containing reference')    
@@ -35,8 +33,7 @@ def get_args():
 
 class mtTree:
     def __init__(self,args):
-        self.bowtie2 = os.path.join(args.bowtie2,"bowtie2") #~/bin,bowtie2 =/bin/bowtie2
-        self.bwa = os.path.join(args.bwa,"bwa")       
+        self.bowtie2 = os.path.join(args.bowtie2,"bowtie2") #~/bin,bowtie2 =/bin/bowtie2      
         self.fastq1 = os.path.realpath(args.fastq1)
         self.fastq2 = os.path.realpath(args.fastq2)
         self.reference = os.path.realpath(args.reference)
@@ -49,24 +46,22 @@ class mtTree:
     
     def align(self,outputSam,reference): #shift_ref contains complete path
         '''align reads from fastq files using bowtie2'''        
-        if self.bwa is None:        
-            #check if index exists
-            if os.path.isfile(reference + ".1.bt2"):
-                pass
-            else:
-                #make index        
-                command = self.bowtie2 + "-build -f " + reference + " " + reference
-                proc = subprocess.Popen(command, shell=True)
-                proc.wait()
-            
-            #run bowtie2 alignment
-            command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
-            print command        
+       
+        #check if index exists
+        if os.path.isfile(reference + ".1.bt2"):
+            pass
+        else:
+            #make index        
+            command = self.bowtie2 + "-build -f " + reference + " " + reference
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
-        else:
-            sys.stderr.write("no support yet for bwa\n")
         
+        #run bowtie2 alignment
+        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
+        print command        
+        proc = subprocess.Popen(command, shell=True)
+        proc.wait()
+
         #sort with samtools
         command = self.samtools + " sort -n -@ " + str(self.threads) + " out.sam -o " + outputSam
         #print command         
