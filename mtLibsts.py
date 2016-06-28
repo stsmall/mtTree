@@ -6,12 +6,12 @@ remake of mtLib.py
 """
 import subprocess
 import sys
+import os
 
 def fasta_shift(fastaIn):
     infile = open(fastaIn,"r")
-    fsplit = fastaIn.split("/")
-    fsplit[-1] = "shift_" + fsplit[-1]
-    fastaOut = "/".join(fsplit)
+    path_ref = os.path.split(fastaIn)  
+    fastaOut = os.path.join(path_ref, "shift_" + path_ref[1])
     outfile = open(fastaOut,"w")
 
     seq = ""
