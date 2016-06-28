@@ -35,16 +35,16 @@ def get_args():
 
 class mtTree:
     def __init__(self,args):
-        self.bowtie2 = os.path.join(args.bowtie2,"bowtie2")
+        self.bowtie2 = os.path.join(args.bowtie2,"bowtie2") #~/bin,bowtie2 =/bin/bowtie2
         self.fastq1 = os.path.realpath(args.fastq1)
         self.fastq2 = os.path.realpath(args.fastq2)
         self.reference = os.path.realpath(args.reference)
-        self.hapsemblr = os.path.realpath(args.hapsemblr) #executables in bin; path should end in bin
+        self.hapsemblr = os.path.realpath(args.hapsemblr) #executables in bin; path should end in bin since join is later 
         self.coverage = args.coverage
         self.read_length = args.read_length
         self.threads = args.threads
         self.cwd = os.path.split(self.fastq1)[0]
-        self.samtools = os.path.realpath(args.samtools)
+        self.samtools = os.path.join(args.samtools,"samtools") #~/bin,samtools =/bin/samtools
     
     def align(self,outputSam,reference): #shift_ref contains complete path
         '''align reads from fastq files using bowtie2'''        
