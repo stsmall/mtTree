@@ -41,7 +41,8 @@ def getRefLength(reference):
     return size
 
 def sam_2_pe(samfile,pe1,pe2):
-          
+    # same number of lines
+    
     #assumes a name sorted sam file; e.g., samtools sort -n or sambamba sort -n -t20
     r1 = subprocess.Popen(['head', '-n 2', samfile],stdout=subprocess.PIPE)
     (out,err) = r1.communicate()
@@ -59,9 +60,14 @@ def sam_2_pe(samfile,pe1,pe2):
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
     else:
-        print "file not sorted by query name"
-        sys.exit(1)
+        sys.stderr.write("file not sorted by query name\n")         
+        sys.exit()
         
+    num_lines1 = sum(1 for line in open(pe1))          
+    num_lines2 = sum(1 for line in open(pe2))
+    if num_lines1 != num_lines2:
+        sys.stderr.write("file not same length, are these paired?\n") 
+        sys.exit()
 def write_random_records(fqa, fqb, N):
     """ get N random headers from a fastq file without reading the
     whole thing into memory"""
