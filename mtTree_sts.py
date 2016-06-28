@@ -125,6 +125,7 @@ class mtTree:
     
     def run(self):
         '''run everything at once'''
+        print self.cwd        
         os.chdir(self.cwd)
 
         #shift reference        
