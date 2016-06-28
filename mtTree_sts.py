@@ -36,6 +36,7 @@ def get_args():
 class mtTree:
     def __init__(self,args):
         self.bowtie2 = os.path.join(args.bowtie2,"bowtie2") #~/bin,bowtie2 =/bin/bowtie2
+        self.bwa = os.path.join(args.bwa,"bwa")       
         self.fastq1 = os.path.realpath(args.fastq1)
         self.fastq2 = os.path.realpath(args.fastq2)
         self.reference = os.path.realpath(args.reference)
