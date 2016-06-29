@@ -36,7 +36,8 @@ def get_args():
 class mtTree:
     def __init__(self,args):
         if args.bwa is None:        
-            self.bowtie2 = os.path.join(args.bowtie2,"bowtie2") #~/bin,bowtie2 =/bin/bowtie2      
+            self.bowtie2 = os.path.join(args.bowtie2,"bowtie2") #~/bin,bowtie2 =/bin/bowtie2
+            self.bwa = None
         else:
             self.bwa = os.path.join(args.bwa,"bwa")
         self.fastq1 = os.path.realpath(args.fastq1)
@@ -49,10 +50,10 @@ class mtTree:
         self.cwd = os.path.split(self.fastq1)[0]
         self.samtools = os.path.join(args.samtools,"samtools") #~/bin,samtools =/bin/samtools
     
-    def align(self,args,outputSam,reference): #shift_ref contains complete path
+    def align(self,outputSam,reference): #shift_ref contains complete path
         '''align reads from fastq files using bowtie2'''        
        
-        if args.bwa is None:
+        if self.bwa is None:
             #check if index exists
             if os.path.isfile(reference + ".1.bt2"):
                 pass
