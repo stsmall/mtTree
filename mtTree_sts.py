@@ -67,13 +67,13 @@ class mtTree:
             proc.wait()
 
         #samtools cull quality
-        command = self.samtools + " view -F4 -h -q 20 out.sam > out.q20.sam"
+        command = self.samtools + " view -F4 -f1 -h -q 10 out.sam > out.q10.sam"
         print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
 
         #sort with samtools
-        command = self.samtools + " sort -f -n -@ " + str(self.threads) + " out.q20.sam " + outputSam
+        command = self.samtools + " sort -h -f -n -@ " + str(self.threads) + " out.q10.sam " + outputSam
         print command         
         proc = subprocess.Popen(command, shell=True)
         proc.wait()            
@@ -150,7 +150,7 @@ class mtTree:
 
        #Cleanup 
         sys.stderr.write("Cleaning up temp files\n")
-        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa mit_contigs.*.fa.tmp core* contigs.fa mitK* out.sam out.q20.sam && gzip *.fq && " + self.samtools + " view -Sb mit_mapped.sam > mit_mapped.srt20.bam"
+        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa *.fa.tmp core* mitK* && gzip *.fq && " + self.samtools + " view -Sb mit_mapped.sam > mit_mapped.srt20.bam"
         #command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa"
         print command        
         proc = subprocess.Popen(command,shell=True)
