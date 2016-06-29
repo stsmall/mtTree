@@ -49,10 +49,10 @@ class mtTree:
         self.cwd = os.path.split(self.fastq1)[0]
         self.samtools = os.path.join(args.samtools,"samtools") #~/bin,samtools =/bin/samtools
     
-    def align(self,outputSam,reference): #shift_ref contains complete path
+    def align(self,args,outputSam,reference): #shift_ref contains complete path
         '''align reads from fastq files using bowtie2'''        
        
-        if self.bwa is None:
+        if args.bwa is None:
             #check if index exists
             if os.path.isfile(reference + ".1.bt2"):
                 pass
