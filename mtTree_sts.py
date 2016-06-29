@@ -150,8 +150,8 @@ class mtTree:
 
        #Cleanup 
         sys.stderr.write("Cleaning up temp files\n")
-        #command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa out.sam out.q20.sam && " + self.samtools + " view -Sb mit_mapped.sam > mit_mapped.srt20.bam"
-        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa"
+        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa mit_contigs.*.fa.tmp core* contigs.fa mitK* out.sam out.q20.sam && gzip *.fq && " + self.samtools + " view -Sb mit_mapped.sam > mit_mapped.srt20.bam"
+        #command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa"
         print command        
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
