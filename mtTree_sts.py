@@ -67,7 +67,7 @@ class mtTree:
             proc.wait()
 
         #samtools cull quality
-        command = self.samtools + " view -F4 -q 20 out.sam > out.q20.sam"
+        command = self.samtools + " view -F4 -h -q 20 out.sam > out.q20.sam"
         print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
