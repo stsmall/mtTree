@@ -58,13 +58,16 @@ class mtTree:
             proc.wait()
         
         #run bowtie2 alignment
-        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -X 700 -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
-        print command        
-        proc = subprocess.Popen(command, shell=True)
-        proc.wait()
+        if os.path.isfile("out.sam"):        
+            pass
+        else:        
+            command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -X 700 -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
+            print command        
+            proc = subprocess.Popen(command, shell=True)
+            proc.wait()
 
         #samtools cull quality
-        command = self.samtools + " view -f4 -q 20 -h out.sam > out.q20.sam"
+        command = self.samtools + " view -F4 -q 20 out.sam > out.q20.sam"
         print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
