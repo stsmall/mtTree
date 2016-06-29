@@ -91,14 +91,14 @@ class mtTree:
                 proc = subprocess.Popen(command, shell=True)
                 proc.wait()   
 
-        #samtools cull quality
-        command = self.samtools + " view -F4 -f1 -h -q 10 out.sam > out.q10.sam"
-        print command        
-        proc = subprocess.Popen(command, shell=True)
-        proc.wait() 
+#        #samtools cull quality
+#        command = self.samtools + " view -F4 -f1 -h -q 10 out.sam > out.q10.sam"
+#        print command        
+#        proc = subprocess.Popen(command, shell=True)
+#        proc.wait() 
 
         #sort with samtools
-        command = self.samtools + " sort -h -f -n -@ " + str(self.threads) + " out.q10.sam " + outputSam
+        command = self.samtools + " sort -h -f -n -@ " + str(self.threads) + " out.sam " + outputSam
         print command         
         proc = subprocess.Popen(command, shell=True)
         proc.wait()            
