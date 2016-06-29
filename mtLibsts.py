@@ -40,28 +40,18 @@ def getRefLength(reference):
             size += len(line.rstrip()) 
     return size
 
-def sam_2_pe(samfile,pe1,pe2):
-    # same number of lines
+def sam_2_pe(samfile,pe1,pe2):    
+    #assumes a name sorted sam file; e.g., samtools sort -n or sambamba sort -n -t20        
+    #Extract forward reads
+    command = "cat " + samfile + " | grep -v ^@ | awk 'NR%2==1 {print \"@\"$1\"_1\\n\"$10\"\\n+\\n\"$11}' > " + pe1 
+    print command        
+    proc = subprocess.Popen(command,shell=True)
+    proc.wait()
     
-    #assumes a name sorted sam file; e.g., samtools sort -n or sambamba sort -n -t20
-    r1 = subprocess.Popen(['head', '-n 2', samfile],stdout=subprocess.PIPE)
-    (out,err) = r1.communicate()
-    #print out
-    if out.split("\n")[0].split("\t")[0] in out.split("\n")[1].split("\t")[0]:  
-        
-        #Extract forward reads
-        command = "cat " + samfile + " | grep -v ^@ | awk 'NR%2==1 {print \"@\"$1\"_1\\n\"$10\"\\n+\\n\"$11}' > " + pe1 
-        print command        
-        proc = subprocess.Popen(command,shell=True)
-        proc.wait()
-        
-        #extract reverse reads
-        command = "cat " + samfile + " | grep -v ^@ | awk 'NR%2==0 {print \"@\"$1\"_2\\n\"$10\"\\n+\\n\"$11}' > " + pe2
-        proc = subprocess.Popen(command,shell=True)
-        proc.wait()
-    else:
-        sys.stderr.write("file not sorted by query name\n")         
-        sys.exit()
+    #extract reverse reads
+    command = "cat " + samfile + " | grep -v ^@ | awk 'NR%2==0 {print \"@\"$1\"_2\\n\"$10\"\\n+\\n\"$11}' > " + pe2
+    proc = subprocess.Popen(command,shell=True)
+    proc.wait()
         
     num_lines1 = sum(1 for line in open(pe1))          
     num_lines2 = sum(1 for line in open(pe2))

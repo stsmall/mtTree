@@ -53,23 +53,25 @@ class mtTree:
         else:
             #make index        
             command = self.bowtie2 + "-build -f " + reference + " " + reference
+            print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
         
         #run bowtie2 alignment
-        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
+        command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -X 700 -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
         print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait()
 
         #samtools cull quality
-        command = self.samtools + " view -q 30 out.sam > out.q30.sam"
+        command = self.samtools + " view -f4 -q 20 -h out.sam > out.q20.sam"
+        print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
 
         #sort with samtools
-        command = self.samtools + " sort -n -@ " + str(self.threads) + " out.q30.sam -o " + outputSam
-        #print command         
+        command = self.samtools + " sort -f -n -@ " + str(self.threads) + " out.q20.sam " + outputSam
+        print command         
         proc = subprocess.Popen(command, shell=True)
         proc.wait()            
       
@@ -88,22 +90,27 @@ class mtTree:
             mtLibsts.write_random_records("mit_1.fq", "mit_2.fq", sampleSize)
             
             command = os.path.join(self.hapsemblr,"preprocr") + " -p illumina -f mit_1.fq.subset -x mit_2.fq.subset -o mit.fq.tmp -d 33"
+            print command
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
             command = os.path.join(self.hapsemblr,"overlappr") + " -p illumina -f mit.fq.tmp -o mitK -g 15 -t " + str(self.threads)
+            print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
             command = os.path.join(self.hapsemblr,"hapsemblr") + " -r mitK -c contigs.fa -g 15"
+            print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
             command = os.path.join(self.hapsemblr,"consensr") + " -p illumina -f mit.fq.tmp -c contigs.fa -o mit_contigs." + str(i) + ".fa -d 33"
+            print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
             command = "rm mit_1.fq.subset mit_2.fq.subset mit.fq.tmp"
+            print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
         
@@ -140,7 +147,9 @@ class mtTree:
 
        #Cleanup 
         sys.stderr.write("Cleaning up temp files\n")
-        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa out.sam out.q30.sam && " + self.samtools + " view -Sb mit_mapped.sam > mit_mapped.sort.bam"
+        #command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa out.sam out.q20.sam && " + self.samtools + " view -Sb mit_mapped.sam > mit_mapped.srt20.bam"
+        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa"
+        print command        
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
   
