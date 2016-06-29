@@ -35,7 +35,7 @@ def get_args():
 
 class mtTree:
     def __init__(self,args):
-        if self.bwa is None:        
+        if args.bwa is None:        
             self.bowtie2 = os.path.join(args.bowtie2,"bowtie2") #~/bin,bowtie2 =/bin/bowtie2      
         else:
             self.bwa = os.path.join(args.bwa,"bwa")
