@@ -108,9 +108,12 @@ class mtTree:
         '''assemble reads using hapsemblr'''
         
         #bam to paired-end        
-        mtLibsts.sam_2_pe(sam,"mit_1.fq","mit_2.fq")  
-        
-        #self.samtools + " fastq -1 mit_1.fq -2 mit_2.fq " + sam
+        #mtLibsts.sam_2_pe(sam,"mit_1.fq","mit_2.fq")  
+
+        command = self.samtools + " fastq -1 mit_1.fq -2 mit_2.fq " + sam
+        print command
+        proc = subprocess.Popen(command, shell=True)
+        proc.wait() 
         
         #Determine sample size using coverage and read length
         refLength = mtLibsts.getRefLength(self.reference)
