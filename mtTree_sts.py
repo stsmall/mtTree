@@ -93,7 +93,7 @@ class mtTree:
                 proc.wait()   
 
         #samtools cull quality -f1 is paired
-        command = self.samtools + " view -F4 -f1 -h out.sam > out.map.sam" 
+        command = self.samtools + " view -F12 -h out.sam > out.map.sam" 
         print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
