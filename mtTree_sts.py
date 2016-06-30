@@ -87,7 +87,7 @@ class mtTree:
             if os.path.isfile("out.sam"):        
                 pass
             else:        
-                command = self.bwa + " mem -Y -t " + str(self.threads) + " " + reference + " " + self.fastq1 + " " + self.fastq2 + " > out.sam" 
+                command = self.bwa + " mem -t " + str(self.threads) + " " + reference + " " + self.fastq1 + " " + self.fastq2 + " > out.sam" 
                 print command        
                 proc = subprocess.Popen(command, shell=True)
                 proc.wait()   
