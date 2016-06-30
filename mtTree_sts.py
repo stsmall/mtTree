@@ -99,7 +99,7 @@ class mtTree:
         proc.wait() 
 
         #sort with samtools
-        command = self.samtools + " sort -h -f -n -@ " + str(self.threads) + " out.map.sam " + outputSam
+        command = self.samtools + " sort -f -n -@ " + str(self.threads) + " out.map.sam " + outputSam
         print command         
         proc = subprocess.Popen(command, shell=True)
         proc.wait()            
