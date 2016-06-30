@@ -108,7 +108,9 @@ class mtTree:
         '''assemble reads using hapsemblr'''
         
         #bam to paired-end        
-        mtLibsts.sam_2_pe(sam,"mit_1.fq","mit_2.fq")        
+        mtLibsts.sam_2_pe(sam,"mit_1.fq","mit_2.fq")  
+        
+        #self.samtools + " fastq -1 mit_1.fq -2 mit_2.fq " + sam
         
         #Determine sample size using coverage and read length
         refLength = mtLibsts.getRefLength(self.reference)
@@ -177,7 +179,6 @@ class mtTree:
        #Cleanup 
         sys.stderr.write("Cleaning up temp files\n")
         command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa *.fa.tmp core* mitK* out.sam && gzip *.fq && " + self.samtools + " view -Sb mit_mapped.sam > mit_mapped.srt.bam"
-        #command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa"
         print command        
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
