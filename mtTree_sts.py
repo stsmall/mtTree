@@ -125,41 +125,41 @@ class mtTree:
             #random sample
             mtLibsts.write_random_records(str(self.prefix) +".mit_1.fq", str(self.prefix) +".mit_2.fq", sampleSize)
             
-            command = os.path.join(self.hapsemblr,"preprocr") + " -p illumina -f " + str(self.prefix) +".mit_1.fq.subset -x " + str(self.prefix) + ".mit_2.fq.subset -o mit.fq.tmp -d 33"
+            command = os.path.join(self.hapsemblr,"preprocr") + " -p illumina -f " + str(self.prefix) +".mit_1.fq.subset -x " + str(self.prefix) + ".mit_2.fq.subset -o " + str(self.prefix) + ".mit.fq.tmp -d 33"
             print command
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = os.path.join(self.hapsemblr,"overlappr") + " -p illumina -f mit.fq.tmp -o mitK -g 15 -t " + str(self.threads)
+            command = os.path.join(self.hapsemblr,"overlappr") + " -p illumina -f " + str(self.prefix) + ".mit.fq.tmp -o " + str(self.prefix) +".mitK -g 15 -t " + str(self.threads)
             print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = os.path.join(self.hapsemblr,"hapsemblr") + " -r mitK -c contigs.fa -g 15"
+            command = os.path.join(self.hapsemblr,"hapsemblr") + " -r " + str(self.prefix) +".mitK -c " + str(self.prefix) + ".contigs.fa -g 15"
             print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = os.path.join(self.hapsemblr,"consensr") + " -p illumina -f mit.fq.tmp -c contigs.fa -o mit_contigs." + str(i) + ".fa -d 33"
+            command = os.path.join(self.hapsemblr,"consensr") + " -p illumina -f " + str(self.prefix) + ".mit.fq.tmp -c " + str(self.prefix) + ".contigs.fa -o " + str(self.prefix) + ".mit_contigs." + str(i) + ".fa -d 33"
             print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = "rm *mit_1.fq.subset *mit_2.fq.subset *mit.fq.tmp"
+            command = "rm " + str(self.prefix) + ".mit_{1,2}.fq.subset "+ str(self.prefix) + ".mit.fq.tmp"
             print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
         
         #cat all mit_contigs.*.fa to mit_contigs.f.fa and change names so unique
-        filenames = ["mit_contigs.1.fa","mit_contigs.2.fa","mit_contigs.3.fa","mit_contigs.4.fa","mit_contigs.5.fa"]
-        with open("mit_contigs.f2.fa",'w') as outfile:
+        filenames = [str(self.prefix)+".mit_contigs.1.fa",str(self.prefix)+".mit_contigs.2.fa",str(self.prefix)+".mit_contigs.3.fa",str(self.prefix)+".mit_contigs.4.fa",str(self.prefix)+".mit_contigs.5.fa"]
+        with open(str(self.prefix)+".mit_contigs.f2.fa",'w') as outfile:
             for fname in filenames:
                 with open(fname) as infile:
                     outfile.write(infile.read())
         #rename the headers so no dups
         j = 0
         with open(str(self.prefix)+".mit_contigs.f.fa",'w') as outfile:
-            with open('mit_contigs.f2.fa','r') as infile:
+            with open(str(self.prefix)+".mit_contigs.f2.fa",'r') as infile:
                 for line in infile:
                     if line.startswith(">"):
                         outfile.write(">mit_%i\n" %j)
@@ -183,7 +183,7 @@ class mtTree:
 
        #Cleanup 
         sys.stderr.write("Cleaning up temp files\n")
-        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa *.fa.tmp mitK* contigs.fa && gzip " + str(self.prefix) + ".mit_{1,2}.fq && " + self.samtools + " view -Sb " + str(self.prefix) + ".mit_mapped.sam > " + str(self.prefix) + ".mit_mapped.srt.bam && rm *.sam"
+        command = "rm " + str(self.prefix)+ ".mit_contigs.{1,2,3,4,5}.fa "+str(self.prefix)+".mit_contigs.f2.fa "+str(self.prefix)+".fa.tmp "+str(self.prefix)+".mitK* "+str(self.prefix)+".contigs.fa && gzip " + str(self.prefix) + ".mit_{1,2}.fq && " + self.samtools + " view -Sb " + str(self.prefix) + ".mit_mapped.sam > " + str(self.prefix) + ".mit_mapped.srt.bam && rm "+str(self.prefix)+".*.sam"
         print command        
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
