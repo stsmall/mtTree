@@ -30,6 +30,7 @@ def get_args():
     parser.add_argument('-t','--threads',help='number of threads for bowtie2',type=int,default=1)   
     parser.add_argument('-s','--samtools',help='path to samtools')    
     parser.add_argument('--debug',action='store_true',help='increase output for code debugging')
+    parser.add_argument('-p','--prefix',help='prefix for outfiles')
     args = parser.parse_args()
     return args
 
@@ -49,7 +50,8 @@ class mtTree:
         self.threads = args.threads
         self.cwd = os.path.split(self.fastq1)[0]
         self.samtools = os.path.join(args.samtools,"samtools") #~/bin,samtools =/bin/samtools
-    
+        self.prefix = args.prefix
+
     def align(self,outputSam,reference): #shift_ref contains complete path
         '''align reads from fastq files using bowtie2'''        
        
@@ -65,10 +67,10 @@ class mtTree:
                 proc.wait()
             
             #run bowtie2 alignment
-            if os.path.isfile("out.sam"):        
+            if os.path.isfile(str(self.prefix)+".out.sam"):        
                 pass
             else:        
-                command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -X 700 -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > out.sam" 
+                command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -X 700 -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > " + str(self.prefix) +".out.sam" 
                 print command        
                 proc = subprocess.Popen(command, shell=True)
                 proc.wait()
@@ -93,13 +95,13 @@ class mtTree:
                 proc.wait()   
 
         #samtools cull quality -f1 is paired
-        command = self.samtools + " view -F12 -h out.sam > out.map.sam" 
+        command = self.samtools + " view -F12 -h " + str(self.prefix) + ".out.sam > " + str(self.prefix) + ".out.map.sam" 
         print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
 
         #sort with samtools
-        command = self.samtools + " sort -f -n -@ " + str(self.threads) + " out.map.sam " + outputSam
+        command = self.samtools + " sort -f -n -@ " + str(self.threads) + " " + str(self.prefix) + ".out.map.sam " + outputSam
         print command         
         proc = subprocess.Popen(command, shell=True)
         proc.wait()            
@@ -110,7 +112,7 @@ class mtTree:
         #bam to paired-end        
         #mtLibsts.sam_2_pe(sam,"mit_1.fq","mit_2.fq")  
 
-        command = self.samtools + " fastq -1 mit_1.fq -2 mit_2.fq " + sam
+        command = self.samtools + " fastq -1 " + str(self.prefix) +".mit_1.fq" + " -2 " + str(self.prefix) + ".mit_2.fq " + sam
         print command
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
@@ -121,7 +123,7 @@ class mtTree:
         #run hapsemblr
         for i in xrange(startCount,endCount+1):
             #random sample
-            mtLibsts.write_random_records("mit_1.fq", "mit_2.fq", sampleSize)
+            mtLibsts.write_random_records(str(self.prefix) +".mit_1.fq", str(self.prefix) +".mit_2.fq", sampleSize)
             
             command = os.path.join(self.hapsemblr,"preprocr") + " -p illumina -f mit_1.fq.subset -x mit_2.fq.subset -o mit.fq.tmp -d 33"
             print command
@@ -156,7 +158,7 @@ class mtTree:
                     outfile.write(infile.read())
         #rename the headers so no dups
         j = 0
-        with open("mit_contigs.f.fa",'w') as outfile:
+        with open(str(self.prefix)+".mit_contigs.f.fa",'w') as outfile:
             with open('mit_contigs.f2.fa','r') as infile:
                 for line in infile:
                     if line.startswith(">"):
@@ -176,12 +178,12 @@ class mtTree:
 
         #run align        
         sys.stderr.write("Performing regular Pipeline\n")        
-        self.align("mit_mapped.sam",shiftRef)
-        self.assemble(1,5,"mit_mapped.sam")
+        self.align(str(self.prefix)+".mit_mapped.sam",shiftRef)
+        self.assemble(1,5,str(self.prefix)+".mit_mapped.sam")
 
        #Cleanup 
         sys.stderr.write("Cleaning up temp files\n")
-        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa *.fa.tmp core* mitK* out.sam && gzip *.fq && " + self.samtools + " view -Sb mit_mapped.sam > mit_mapped.srt.bam"
+        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa *.fa.tmp core* mitK* out.sam && gzip *.fq && " + self.samtools + " view -Sb " + str(self.prefix) + ".mit_mapped.sam > " + str(self.prefix) + ".mit_mapped.srt.bam"
         print command        
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
