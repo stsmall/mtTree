@@ -125,7 +125,7 @@ class mtTree:
             #random sample
             mtLibsts.write_random_records(str(self.prefix) +".mit_1.fq", str(self.prefix) +".mit_2.fq", sampleSize)
             
-            command = os.path.join(self.hapsemblr,"preprocr") + " -p illumina -f mit_1.fq.subset -x mit_2.fq.subset -o mit.fq.tmp -d 33"
+            command = os.path.join(self.hapsemblr,"preprocr") + " -p illumina -f " + str(self.prefix) +".mit_1.fq.subset -x " + str(self.prefix) + ".mit_2.fq.subset -o mit.fq.tmp -d 33"
             print command
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
@@ -145,7 +145,7 @@ class mtTree:
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
 
-            command = "rm mit_1.fq.subset mit_2.fq.subset mit.fq.tmp"
+            command = "rm *mit_1.fq.subset *mit_2.fq.subset *mit.fq.tmp"
             print command            
             proc = subprocess.Popen(command, shell=True)
             proc.wait()
@@ -183,7 +183,7 @@ class mtTree:
 
        #Cleanup 
         sys.stderr.write("Cleaning up temp files\n")
-        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa *.fa.tmp core* mitK* out.sam && gzip *.fq && " + self.samtools + " view -Sb " + str(self.prefix) + ".mit_mapped.sam > " + str(self.prefix) + ".mit_mapped.srt.bam"
+        command = "rm mit_contigs.{1,2,3,4,5}.fa mit_contigs.f2.fa *.fa.tmp mitK* contigs.fa && gzip " + str(self.prefix) + ".mit_{1,2}.fq && " + self.samtools + " view -Sb " + str(self.prefix) + ".mit_mapped.sam > " + str(self.prefix) + ".mit_mapped.srt.bam && rm *.sam"
         print command        
         proc = subprocess.Popen(command,shell=True)
         proc.wait()
