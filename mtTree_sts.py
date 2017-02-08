@@ -57,9 +57,7 @@ class mtTree:
        
         if self.bwa is None:
             #check if index exists
-            if os.path.isfile(reference + ".1.bt2"):
-                pass
-            else:
+            if not os.path.isfile(reference + ".1.bt2"):
                 #make index        
                 command = self.bowtie2 + "-build -f " + reference + " " + reference
                 print command            
@@ -67,18 +65,14 @@ class mtTree:
                 proc.wait()
             
             #run bowtie2 alignment
-            if os.path.isfile(str(self.prefix)+".out.sam"):        
-                pass
-            else:        
+            if not os.path.isfile(str(self.prefix)+".out.sam"):             
                 command = self.bowtie2 + " -p " + str(self.threads) + " --no-unal -X 700 -R 5 -N 1 -L 12 -D 25 -i S,2,.25 -x " + reference + " -1 " + self.fastq1 + " -2 " + self.fastq2 + " > " + str(self.prefix) +".out.sam" 
                 print command        
                 proc = subprocess.Popen(command, shell=True)
                 proc.wait()
         else:
             #check if index exists
-            if os.path.isfile(reference + ".ann"):
-                pass
-            else:
+            if  not os.path.isfile(reference + ".ann"):
                 #make index        
                 command = self.bwa + " index " + reference
                 print command            
@@ -86,22 +80,20 @@ class mtTree:
                 proc.wait()
             
             #run bwa mem alignment
-            if os.path.isfile("out.sam"):        
-                pass
-            else:        
-                command = self.bwa + " mem -t " + str(self.threads) + " " + reference + " " + self.fastq1 + " " + self.fastq2 + " > out.sam" 
+            if not os.path.isfile("out.sam"):        
+                command = self.bwa + " mem -M -t " + str(self.threads) + " " + reference + " " + self.fastq1 + " " + self.fastq2 + " >" + str(self.prefix) + "out.sam" 
                 print command        
                 proc = subprocess.Popen(command, shell=True)
                 proc.wait()   
 
-        #samtools cull quality -f1 is paired
-        command = self.samtools + " view -F12 -h " + str(self.prefix) + ".out.sam > " + str(self.prefix) + ".out.map.sam" 
+        #samtools get mapped in pe no secondary or supplementary 4 + 2048 + 260 = 2308; pe -f2
+        command = self.samtools + " view -F2308 -f2 -h -Sq 20 " + str(self.prefix) + ".out.sam > " + str(self.prefix) + ".out.pemap.sam" 
         print command        
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
 
         #sort with samtools
-        command = self.samtools + " sort -n -@ " + str(self.threads) + " -T " + str(self.prefix) + " " + str(self.prefix) + ".out.map.sam > " + outputSam
+        command = self.samtools + " sort -n -@ " + str(self.threads) + " -T " + str(self.prefix) + " " + str(self.prefix) + ".out.pemap.sam > " + outputSam
         print command         
         proc = subprocess.Popen(command, shell=True)
         proc.wait()            
@@ -112,7 +104,7 @@ class mtTree:
         #bam to paired-end        
         #mtLibsts.sam_2_pe(sam,"mit_1.fq","mit_2.fq")  
 
-        command = self.samtools + " fastq -1 " + str(self.prefix) +".mit_1.fq" + " -2 " + str(self.prefix) + ".mit_2.fq " + sam
+        command = self.samtools + " fastq -n -s singletons.fq -1 " + str(self.prefix) +".mit_1.fq" + " -2 " + str(self.prefix) + ".mit_2.fq " + sam
         print command
         proc = subprocess.Popen(command, shell=True)
         proc.wait() 
