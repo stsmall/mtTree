@@ -87,7 +87,7 @@ class mtTree:
                 proc.wait()
 
         #samtools get mapped in pe no secondary or supplementary 4 + 2048 + 260 = 2308; pe -f2
-        command = self.samtools + " view -f2 -h -Sq 20 " + str(self.prefix) + ".out.sam > " + str(self.prefix) + ".out.pemap.sam"
+        command = self.samtools + " view -F12 -h -Sq 20 " + str(self.prefix) + ".out.sam > " + str(self.prefix) + ".out.pemap.sam"
         print command
         proc = subprocess.Popen(command, shell=True)
         proc.wait()
